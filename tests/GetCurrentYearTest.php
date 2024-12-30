@@ -3,7 +3,7 @@ use PHPUnit\Framework\TestCase;
 
 require_once __DIR__ . '/../index.php'; // Path to the PHP file being tested
 
-class DateTimeFunctionsTest extends TestCase {
+class GetCurrentYearTest extends TestCase {
 
     // Test for getCurrentYear() function
     public function testGetCurrentYear() {
