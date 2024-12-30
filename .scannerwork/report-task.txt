@@ -1,0 +1,7 @@
+organization=aymengharbi1
+projectKey=aymengharbi1_minidevops
+serverUrl=https://sonarcloud.io
+serverVersion=8.0.0.58741
+dashboardUrl=https://sonarcloud.io/dashboard?id=aymengharbi1_minidevops
+ceTaskId=AZQXmiRJgDr3kuHup1DS
+ceTaskUrl=https://sonarcloud.io/api/ce/task?id=AZQXmiRJgDr3kuHup1DS
