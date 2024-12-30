@@ -5,15 +5,15 @@ on:
       branches: [ "master" ]
     workflow_dispatch:
   
-  env:
+env:
     AZURE_WEBAPP_NAME: 'WebApp45693926'  # Azure Web App name
     DOCKER_IMAGE: 'aymengharbi/devops'  # Docker image name
     PHP_VERSION: '8.x'  # PHP version used
   
-  permissions:
+permissions:
     contents: read
   
-  jobs:
+jobs:
     test:
       name: Run Tests avec phpUnit et SonarQube 
       runs-on: ubuntu-latest
