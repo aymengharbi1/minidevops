@@ -2,89 +2,89 @@ name: Tester(phpunit et sonarcube) la création de l'image Docker et déployer l
 
 on:
     push:
-      branches: [ "master" ]
-    workflow_dispatch:
+      branches: [ "master" ] # Déclenchement du workflow lors d'un push sur la branche "master"
+    workflow_dispatch:  # Permet d'exécuter manuellement le workflow à partir de l'interface GitHub Actions
   
 env:
-    AZURE_WEBAPP_NAME: 'WebApp45693926'  # Azure Web App name
-    DOCKER_IMAGE: 'aymengharbi/devops'  # Docker image name
-    PHP_VERSION: '8.x'  # PHP version used
+    AZURE_WEBAPP_NAME: 'WebApp45693926'  # Nom de l'application Web sur Azure
+    DOCKER_IMAGE: 'aymengharbi/devops'  # Nom de l'image Docker à créer
+    PHP_VERSION: '8.x'  # Version de PHP utilisée dans l'application
   
 permissions:
-    contents: read
+    contents: read  # Permet uniquement la lecture des contenus du dépôt
   
 jobs:
     test:
-      name: Run Tests avec phpUnit et SonarQube 
-      runs-on: ubuntu-latest
+      name: Run Tests avec phpUnit et SonarQube # Nom du job pour exécuter les tests
+      runs-on: ubuntu-latest   # Utilisation d'un environnement Ubuntu récent pour l'exécution du job
   
       steps:
         - name: Checkout code
-          uses: actions/checkout@v4
+          uses: actions/checkout@v4   # Récupère le code source du dépôt
           with:
-            fetch-depth: 0  # full history for SonarCloud analysis
+            fetch-depth: 0  # Récupère l'historique complet pour l'analyse de SonarCloud
   
         - name: Set up PHP
-          uses: shivammathur/setup-php@v2
+          uses: shivammathur/setup-php@v2  # Installe PHP dans l'environnement
           with:
-            php-version: ${{ env.PHP_VERSION }}
-            extensions: mbstring, intl, pdo, mysqli
-            coverage: none
+            php-version: ${{ env.PHP_VERSION }}  # Spécifie la version de PHP à installer
+            extensions: mbstring, intl, pdo, mysqli  # Extensions PHP nécessaires
+            coverage: none  # Ne collecte pas de couverture de code
             #dependances test avec phpunit
         - name: Install dependencies 
-          run: composer install --no-progress
+          run: composer install --no-progress  # Installe les dépendances PHP avec Composer
         - name: Install dependencies
           run: composer install --no-progress
         - name: Run tests using phpunit
-          run: vendor/bin/phpunit --testdox tests/GetCurrentYearTest.php
+          run: vendor/bin/phpunit --testdox tests/GetCurrentYearTest.php  # Exécute les tests PHPUnit spécifiés
            #Exécution SonarQube scan 
         - name: Run SonarQube Scan
-          uses: SonarSource/sonarcloud-github-action@master
+          uses: SonarSource/sonarcloud-github-action@master   # Action GitHub pour lancer un scan SonarQube
           env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  #  PR analysis
-            SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Jeton GitHub pour l'analyse des Pull Requests
+            SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}  # Jeton d'authentification pour SonarQube
           
     docker-build-push:
-      name: Build and Push Docker Image
-      runs-on: ubuntu-latest
-      needs: test  # Depend de la phase 'test' 
+      name: Build and Push Docker Image  # Nom du job pour construire et pousser l'image Docker
+      runs-on: ubuntu-latest   # Utilisation d'un environnement Ubuntu pour ce job
+      needs: test    # Ce job dépend du job "test" (les tests doivent réussir avant de construire l'image Docker)
   
       steps:
         - name: Set up QEMU
-          uses: docker/setup-qemu-action@v2
+          uses: docker/setup-qemu-action@v2   # Prépare QEMU pour supporter l'émulation de différentes architectures
   
         - name: Set up Docker Buildx
-          uses: docker/setup-buildx-action@v2
+          uses: docker/setup-buildx-action@v2   # Prépare Docker Buildx pour la construction d'images multi-plateformes
   
         - name: Login to DockerHub
-          uses: docker/login-action@v2
+          uses: docker/login-action@v2  # Se connecte à DockerHub avec les identifiants secrets
           with:
-            username: ${{ secrets.DOCKERHUB_USERNAME }}
-            password: ${{ secrets.DOCKERHUB_TOKEN }}
+            username: ${{ secrets.DOCKERHUB_USERNAME }}  # Nom d'utilisateur DockerHub
+            password: ${{ secrets.DOCKERHUB_TOKEN }}   # Jeton DockerHub pour l'authentification
   
         - name: Checkout repository
-          uses: actions/checkout@v4
+          uses: actions/checkout@v4   # Récupère le code source du dépôt pour la construction de l'image Docker
   
         - name: Build and push Docker image
-          uses: docker/build-push-action@v3
+          uses: docker/build-push-action@v3   # Utilise Docker pour construire et pousser l'image Docker
           with:
-            context: .                               # Context for Docker build
-            file: ./Dockerfile                       # chemin de Dockerfile
-            push: true                               # Push image a DockerHub
-            tags: ${{ env.DOCKER_IMAGE }}:1.0.${{ github.run_number }}
+            context: .                                # Définit le contexte de la construction Docker (répertoire actuel)
+            file: ./Dockerfile                       # Spécifie le chemin vers le Dockerfile
+            push: true                               # Pousse l'image vers DockerHub
+            tags: ${{ env.DOCKER_IMAGE }}:1.0.${{ github.run_number }}  # Crée un tag avec la version de l'image Docker
 
     deploy:
-                name: Deploy to Azure Web App
-                runs-on: ubuntu-latest
-                needs: docker-build-push  # Depend on Docker build phase
+                name: Deploy to Azure Web App  # Nom du job pour déployer l'image Docker sur Azure
+                runs-on: ubuntu-latest    # Utilisation d'un environnement Ubuntu pour ce job
+                needs: docker-build-push  # Ce job dépend du job "docker-build-push" (l'image Docker doit être construite et poussée avant)
                 environment:
-                  name: 'Development'
+                  name: 'Development'   # Environnement cible pour le déploiement (ici, 'Development')
             
                 steps:
                   - name: Deploy Docker image to Azure Web App
-                    uses: azure/webapps-deploy@v2
+                    uses: azure/webapps-deploy@v2   # Action GitHub pour déployer l'image Docker sur Azure Web App
                     with:
-                      app-name: ${{ env.AZURE_WEBAPP_NAME }}
-                      publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-                      images: ${{ env.DOCKER_IMAGE }}:1.0.${{ github.run_number }}
+                      app-name: ${{ env.AZURE_WEBAPP_NAME }}   # Nom de l'application Web sur Azure
+                      publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}   # Profil de publication pour l'authentification Azure
+                      images: ${{ env.DOCKER_IMAGE }}:1.0.${{ github.run_number }}   # Image Docker à déployer sur Azure (avec le tag versionné)
                
