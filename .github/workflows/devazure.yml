@@ -1,4 +1,4 @@
-name: Test Build image docker, and deploy PHP app pour Azure Web App avec Docker
+name: Tester(phpunit et sonarcube) la création de l'image Docker et déployer l'application PHP sur Azure Web App avec Docker
 
 on:
     push:
