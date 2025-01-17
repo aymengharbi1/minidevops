@@ -1,5 +1,5 @@
 <?php
-// Inclusion de la classe de base de PHPUnit pour les tests unitaires.
+// Inclusion de la classe de base de PHPUnit pour les tests unitaires...
 use PHPUnit\Framework\TestCase;
 
 require_once __DIR__ . '/../index.php'; // Inclusion du fichier PHP à tester
